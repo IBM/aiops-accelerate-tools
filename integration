@@ -172,14 +172,14 @@ function check_prerequisites() {
   fi
 
   if ! which gpg > /dev/null 2>&1; then
-    log_warn 'The "gpg" program is not installed on this system: the verification of the Instana agent packages cannot be performed.'
+    log_warn 'The "gpg" program is not installed on this system: the verification of the AIOps Insights integration packages cannot be performed.'
     if [ $PROMPT = true ]; then
       if ! receive_confirmation 'Do you want to continue?'; then
         exit 1
       fi
     fi
 
-    log_warn 'The verification of the Instana agent packages will be skipped.'
+    log_warn 'The verification of the AIOps Insights integration packages will be skipped.'
     gpg_check=0
   fi
 }
@@ -201,10 +201,10 @@ function check_download_key() {
   done
 
   if [ ${retval} -eq 28 ] || [ ${retval} -eq 4 ]; then
-	log_error "Verifying the Instana agent download key timed-out, please try again."
+	log_error "Verifying the AIOps Insights integration download key timed-out, please try again."
 	exit 1
   elif [ ${retval} -ne 0 ]; then
-    log_error "The Instana agent download key provided seems to be invalid, please check the agent key and try again."
+    log_error "The AIOps Insights integration download key provided seems to be invalid, please check the download key and try again."
     exit 1
   fi
 }
@@ -293,7 +293,7 @@ function setup_agent() {
 
   'apt')
 
-    log_info "Setting up Instana APT repository"
+    log_info "Setting up AIOps Insights APT repository"
 
     # For whatever reason debian uses rando arch names instead of what is reported by uname
     local arch="$MACHINE"
@@ -333,14 +333,14 @@ password ${INSTANA_DOWNLOAD_KEY}
     fi
 
     if ! echo "$apt_uri" > /etc/apt/sources.list.d/instana-agent.list; then
-      log_error "Instana APT repository setup failed"
+      log_error "AIOps Insights APT repository setup failed"
       exit 1
     fi
 
     if [ "${gpg_check}" -eq 1 ]; then
-      log_info "Importing Instana GPG key"
+      log_info "Importing AIOps Insights GPG key"
       if ! download_to_stdout "$gpg_uri" | apt-key add - > /dev/null; then
-        log_error "Instana GPG key import failed"
+        log_error "AIOps Insights GPG key import failed"
         exit 1
       fi
     else
@@ -354,10 +354,10 @@ password ${INSTANA_DOWNLOAD_KEY}
       exit 1
     fi
 
-    log_info "Installing Instana agent"
+    log_info "Installing AIOps Insights integration"
 
     if ! apt-get ${AUTHENTICATION_PARAM} install -y instana-agent-${AGENT_TYPE} > /dev/null; then
-      log_error "Instana agent package install failed"
+      log_error "AIOps Insights integration package install failed"
       exit 1
     fi
 
@@ -366,7 +366,7 @@ password ${INSTANA_DOWNLOAD_KEY}
 
   'dnf')
 
-    log_info "Setting up Instana RPM repository"
+    log_info "Setting up AIOps Insights RPM repository"
 
     local yum_repo
     read -r -d '' yum_repo <<EOF
@@ -381,7 +381,7 @@ sslverify=1
 EOF
 
     if ! echo "$yum_repo" > /etc/yum.repos.d/Instana-Agent.repo; then
-      log_error "Instana YUM repository setup failed"
+      log_error "AIOps Insights YUM repository setup failed"
       exit 1
     fi
 
@@ -391,10 +391,10 @@ EOF
       exit 1
     fi
 
-    log_info "Installing Instana agent"
+    log_info "Installing AIOps Insights integration"
 
     if ! dnf install -y instana-agent-$AGENT_TYPE > /dev/null; then
-      log_error "Instana agent package install failed"
+      log_error "AIOps Insights integration package install failed"
       exit 1
     fi
 
@@ -403,7 +403,7 @@ EOF
 
   'yum')
 
-    log_info "Setting up Instana YUM repository"
+    log_info "Setting up AIOps Insights YUM repository"
 
     local yum_repo
     read -r -d '' yum_repo <<EOF
@@ -418,7 +418,7 @@ sslverify=1
 EOF
 
     if ! echo "$yum_repo" > /etc/yum.repos.d/Instana-Agent.repo; then
-      log_error "Instana YUM repository setup failed"
+      log_error "AIOps Insights YUM repository setup failed"
       exit 1
     fi
 
@@ -428,10 +428,10 @@ EOF
       exit 1
     fi
 
-    log_info "Installing Instana agent"
+    log_info "Installing AIOps Insights integration"
 
     if ! yum install -y instana-agent-$AGENT_TYPE > /dev/null; then
-      log_error "Instana agent package install failed"
+      log_error "AIOps Insights integration package install failed"
       exit 1
     fi
 
@@ -440,7 +440,7 @@ EOF
 
   'zypper')
 
-    log_info "Setting up Instana zypper repository"
+    log_info "Setting up AIOps Insights zypper repository"
 
     local zypp_repo
     read -r -d '' zypp_repo <<EOF
@@ -455,14 +455,14 @@ sslverify=1
 EOF
 
     if ! echo "$zypp_repo" > /etc/zypp/repos.d/Instana-Agent.repo; then
-      log_error "Instana zypper repository setup failed"
+      log_error "AIOps Insights zypper repository setup failed"
       exit 1
     fi
 
     if [ "${gpg_check}" -eq 1 ]; then
-      log_info "Importing Instana GPG key"
+      log_info "Importing AIOps Insights GPG key"
       if ! rpm --import "$gpg_uri"; then
-        log_error "Instana GPG key import failed"
+        log_error "AIOps Insights GPG key import failed"
         exit 1
       fi
     fi
@@ -473,10 +473,10 @@ EOF
       exit 1
     fi
 
-    log_info "Installing Instana agent"
+    log_info "Installing AIOps Insights agent"
 
     if ! zypper -n install instana-agent-$AGENT_TYPE > /dev/null; then
-      log_error "Instana agent package install failed"
+      log_error "AIOps Insights integration package install failed"
       exit 1
     fi
 
@@ -626,7 +626,7 @@ EOF
 
 function start_agent() {
   if systemctl is-active instana-agent > /dev/null 2>&1; then
-    log_warn "Instana agent service is active and agent is reinstalled. Service will be restarted"
+    log_warn "AIOps Insights integration service is active and integration is reinstalled. Service will be restarted"
     START=true
   fi
 
@@ -644,22 +644,22 @@ function start_agent() {
     fi
 
     if ! systemctl enable instana-agent > /dev/null 2>&1; then
-      log_error "Instana agent service enable on boot failed"
+      log_error "AIOps Insights integration service enable on boot failed"
       exit 1
     else
-      log_info "Instana agent enabled on boot"
+      log_info "AIOps Insights integration enabled on boot"
     fi
 
-    log_info "Starting instana-agent"
+    log_info "Starting AIOps Insights Integration"
     if ! systemctl restart instana-agent > /dev/null 2>&1; then
-      log_error "Instana agent service start failed"
+      log_error "AIOps Insights integration service start failed"
       exit 1
     else
-      log_info "Instana agent service started up"
+      log_info "AIOps Insights integration service started up"
     fi
   else
-    log_warn "Instana agent automatic enable/startup by this script is only supported for systemd"
-    log_warn "Utilize your distribution's init system methods to enable/start the agent"
+    log_warn "AIOps Insights integration automatic enable/startup by this script is only supported for systemd"
+    log_warn "Utilize your distribution's init system methods to enable/start the integration"
   fi
 }
 
@@ -735,17 +735,17 @@ if [ "$(id -u)" != "0" ]; then
 fi
 
 if [ "$OS" = "Darwin" ]; then
-  log_error "Agent install script does not support macOS. Please download the macOS package from the 'Installing Instana Agents' wizard."
+  log_error "Integration install script does not support macOS. Please download the macOS package from the 'Installing AIOps Insights Integrations' wizard."
   exit 1
 fi
 
 if [ "$OS" = "AIX" ]; then
-  log_error "Agent install script does not support AIX. Please download the AIX package from the 'Installing Instana Agents' wizard."
+  log_error "Integration install script does not support AIX. Please download the AIX package from the 'Installing AIOps Insights Integrations' wizard."
   exit 1
 fi
 
 if [ "$OS" = "SunOS" ]; then
-  log_error "Agent install script does not support Solaris. Please download the Solaris package from the 'Installing Instana Agents' wizard."
+  log_error "Integration install script does not support Solaris. Please download the Solaris package from the 'Installing AIOps Insights Integrations' wizard."
   exit 1
 fi
 
@@ -766,13 +766,13 @@ if [ ! "$INSTANA_DOWNLOAD_KEY" ]; then
 fi
 
 if [ $AGENT_TYPE != "static" ] && [ $AGENT_TYPE != "dynamic" ]; then
-  log_error "Invalid agent type specified $AGENT_TYPE"
+  log_error "Invalid integration type specified $AGENT_TYPE"
   exit 1
 fi
 
 if [ "$ENDPOINT" != "" ]; then
   if ! echo "$ENDPOINT" | grep ":" &>/dev/null; then
-    log_error "Agent endpoint must be in the format of <host>:<port>"
+    log_error "Integration endpoint must be in the format of <host>:<port>"
     exit 1
   fi
 fi
@@ -792,7 +792,7 @@ fi
 
 if [ $OPEN_J9 = "false" ]; then
   if [ $MACHINE = "s390x" ] || [ $MACHINE = "ppc64le" ]; then
-    log_info "For the '${MACHINE}' architecture only OpenJ9 JDK is available. Enforcing OpenJ9 agent runtime."
+    log_info "For the '${MACHINE}' architecture only OpenJ9 JDK is available. Enforcing OpenJ9 integration runtime."
     OPEN_J9="true"
   fi
 fi
@@ -838,7 +838,7 @@ detect_family
 
 detect_init
 
-echo "Setting up the ${AGENT_TYPE} Instana agent for $OS"
+echo "Setting up the ${AGENT_TYPE} AIOps Insights integration for $OS"
 
 if [ $PROMPT = false ]; then
   response=y
