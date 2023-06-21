@@ -48,9 +48,6 @@ INSTANA_PRODUCT_NAME="aiops-insights"
 
 INSTANA_AWS_REGION_CONFIG=""
 
-# Always use internal packages, until GA.
-USE_INTERNAL_PACKAGES=true
-
 gpg_check=1
 
 function exists {
@@ -623,6 +620,21 @@ EOF
   fi
 }
 
+function update_agent_max_mem_conf() {
+  local conf_file="/etc/systemd/system/instana-agent.service.d/custom-environment.conf"
+  if [ -e $conf_file ]; then
+    sed -i 's/^#*Environment=AGENT_MAX_MEM=.*$/Environment=AGENT_MAX_MEM=1024m/' $conf_file
+  else
+    mkdir -p /etc/systemd/system/instana-agent.service.d/
+    read -r -d '' agent_max_mem_conf <<EOF
+[Service]
+Environment=AGENT_MAX_MEM=1024m
+EOF
+    if ! echo "$agent_max_mem_conf" > $conf_file; then
+      log_warn "Failed to create '/etc/systemd/system/instana-agent.service.d/agent-custom-start.conf'"
+    fi
+  fi
+}
 
 function start_agent() {
   if systemctl is-active instana-agent > /dev/null 2>&1; then
@@ -874,6 +886,8 @@ check_preexisting_git_repository
 configure_env
 
 configure_integration
+
+update_agent_max_mem_conf
 
 if ! start_agent; then
   exit 1
