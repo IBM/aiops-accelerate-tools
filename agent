@@ -169,14 +169,14 @@ function check_prerequisites() {
   fi
 
   if ! which gpg > /dev/null 2>&1; then
-    log_warn 'The "gpg" program is not installed on this system: the verification of the AIOps Insights integration packages cannot be performed.'
+    log_warn 'The "gpg" program is not installed on this system: the verification of the AIOps Insights agent packages cannot be performed.'
     if [ $PROMPT = true ]; then
       if ! receive_confirmation 'Do you want to continue?'; then
         exit 1
       fi
     fi
 
-    log_warn 'The verification of the AIOps Insights integration packages will be skipped.'
+    log_warn 'The verification of the AIOps Insights agent packages will be skipped.'
     gpg_check=0
   fi
 }
@@ -198,10 +198,10 @@ function check_download_key() {
   done
 
   if [ ${retval} -eq 28 ] || [ ${retval} -eq 4 ]; then
-	log_error "Verifying the AIOps Insights integration download key timed-out, please try again."
+	log_error "Verifying the AIOps Insights agent download key timed-out, please try again."
 	exit 1
   elif [ ${retval} -ne 0 ]; then
-    log_error "The AIOps Insights integration download key provided seems to be invalid, please check the download key and try again."
+    log_error "The AIOps Insights agent download key provided seems to be invalid, please check the download key and try again."
     exit 1
   fi
 }
@@ -351,10 +351,10 @@ password ${INSTANA_DOWNLOAD_KEY}
       exit 1
     fi
 
-    log_info "Installing AIOps Insights integration"
+    log_info "Installing AIOps Insights agent"
 
     if ! apt-get ${AUTHENTICATION_PARAM} install -y instana-agent-${AGENT_TYPE} > /dev/null; then
-      log_error "AIOps Insights integration package install failed"
+      log_error "AIOps Insights agent package install failed"
       exit 1
     fi
 
@@ -388,10 +388,10 @@ EOF
       exit 1
     fi
 
-    log_info "Installing AIOps Insights integration"
+    log_info "Installing AIOps Insights agent"
 
     if ! dnf install -y instana-agent-$AGENT_TYPE > /dev/null; then
-      log_error "AIOps Insights integration package install failed"
+      log_error "AIOps Insights agent package install failed"
       exit 1
     fi
 
@@ -425,10 +425,10 @@ EOF
       exit 1
     fi
 
-    log_info "Installing AIOps Insights integration"
+    log_info "Installing AIOps Insights agent"
 
     if ! yum install -y instana-agent-$AGENT_TYPE > /dev/null; then
-      log_error "AIOps Insights integration package install failed"
+      log_error "AIOps Insights agent package install failed"
       exit 1
     fi
 
@@ -473,7 +473,7 @@ EOF
     log_info "Installing AIOps Insights agent"
 
     if ! zypper -n install instana-agent-$AGENT_TYPE > /dev/null; then
-      log_error "AIOps Insights integration package install failed"
+      log_error "AIOps Insights agent package install failed"
       exit 1
     fi
 
@@ -586,7 +586,7 @@ function configure_env() {
   printf "$env_content" > "$env_path"
 }
 
-# Write the optional integration configuration to the file system
+# Write the optional agent configuration to the file system
 function configure_integration() {
   local conf_path="/opt/instana/agent/etc/instana/configuration-integration.yaml"
   [[ -n "$AGENT_CONF_BASE64" ]] && echo $AGENT_CONF_BASE64 | base64 -d > $conf_path
@@ -638,7 +638,7 @@ EOF
 
 function start_agent() {
   if systemctl is-active instana-agent > /dev/null 2>&1; then
-    log_warn "AIOps Insights integration service is active and integration is reinstalled. Service will be restarted"
+    log_warn "AIOps Insights agent service is active and agent is reinstalled. Service will be restarted"
     START=true
   fi
 
@@ -656,22 +656,22 @@ function start_agent() {
     fi
 
     if ! systemctl enable instana-agent > /dev/null 2>&1; then
-      log_error "AIOps Insights integration service enable on boot failed"
+      log_error "AIOps Insights agent service enable on boot failed"
       exit 1
     else
-      log_info "AIOps Insights integration enabled on boot"
+      log_info "AIOps Insights agent enabled on boot"
     fi
 
-    log_info "Starting AIOps Insights Integration"
+    log_info "Starting AIOps Insights Agent"
     if ! systemctl restart instana-agent > /dev/null 2>&1; then
-      log_error "AIOps Insights integration service start failed"
+      log_error "AIOps Insights agent service start failed"
       exit 1
     else
-      log_info "AIOps Insights integration service started up"
+      log_info "AIOps Insights agent service started up"
     fi
   else
-    log_warn "AIOps Insights integration automatic enable/startup by this script is only supported for systemd"
-    log_warn "Utilize your distribution's init system methods to enable/start the integration"
+    log_warn "AIOps Insights agent automatic enable/startup by this script is only supported for systemd"
+    log_warn "Utilize your distribution's init system methods to enable/start the agent"
   fi
 }
 
@@ -747,17 +747,17 @@ if [ "$(id -u)" != "0" ]; then
 fi
 
 if [ "$OS" = "Darwin" ]; then
-  log_error "Integration install script does not support macOS. Please download the macOS package from the 'Installing AIOps Insights Integrations' wizard."
+  log_error "Agent install script does not support macOS. Please download the macOS package from the 'Installing AIOps Insights Agents' wizard."
   exit 1
 fi
 
 if [ "$OS" = "AIX" ]; then
-  log_error "Integration install script does not support AIX. Please download the AIX package from the 'Installing AIOps Insights Integrations' wizard."
+  log_error "Agent install script does not support AIX. Please download the AIX package from the 'Installing AIOps Insights Agents' wizard."
   exit 1
 fi
 
 if [ "$OS" = "SunOS" ]; then
-  log_error "Integration install script does not support Solaris. Please download the Solaris package from the 'Installing AIOps Insights Integrations' wizard."
+  log_error "Agent install script does not support Solaris. Please download the Solaris package from the 'Installing AIOps Insights Agents' wizard."
   exit 1
 fi
 
@@ -778,13 +778,13 @@ if [ ! "$INSTANA_DOWNLOAD_KEY" ]; then
 fi
 
 if [ $AGENT_TYPE != "static" ] && [ $AGENT_TYPE != "dynamic" ]; then
-  log_error "Invalid integration type specified $AGENT_TYPE"
+  log_error "Invalid agent type specified $AGENT_TYPE"
   exit 1
 fi
 
 if [ "$ENDPOINT" != "" ]; then
   if ! echo "$ENDPOINT" | grep ":" &>/dev/null; then
-    log_error "Integration endpoint must be in the format of <host>:<port>"
+    log_error "Agent endpoint must be in the format of <host>:<port>"
     exit 1
   fi
 fi
@@ -804,7 +804,7 @@ fi
 
 if [ $OPEN_J9 = "false" ]; then
   if [ $MACHINE = "s390x" ] || [ $MACHINE = "ppc64le" ]; then
-    log_info "For the '${MACHINE}' architecture only OpenJ9 JDK is available. Enforcing OpenJ9 integration runtime."
+    log_info "For the '${MACHINE}' architecture only OpenJ9 JDK is available. Enforcing OpenJ9 agent runtime."
     OPEN_J9="true"
   fi
 fi
@@ -850,7 +850,7 @@ detect_family
 
 detect_init
 
-echo "Setting up the ${AGENT_TYPE} AIOps Insights integration for $OS"
+echo "Setting up the ${AGENT_TYPE} AIOps Insights agent for $OS"
 
 if [ $PROMPT = false ]; then
   response=y
